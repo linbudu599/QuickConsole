@@ -5,6 +5,9 @@ const REMOVE_COMMAND = 'quick-console.removeConsoleLog';
 
 const INTERNAL_INSERT_AFTERLINE = 'editor.action.insertLineAfter';
 
+const LOG_STATEMENT_REGEX =
+  /console.(log|debug|info|warn|error|dir|trace|group|groupEnd|time|timeEnd|count)\((.*)\);?/g;
+
 const logger = (...msg: unknown[]) => {
   console.log('QuickConsole', ...msg);
 };
@@ -53,6 +56,47 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   context.subscriptions.push(insertHandler);
+
+  const removeHandler = vscode.commands.registerCommand(REMOVE_COMMAND, () => {
+    const currentEditor = vscode.window.activeTextEditor;
+
+    if (!currentEditor) {
+      noActiveEditorTip();
+      return;
+    }
+
+    const currentDocument = currentEditor.document;
+    const currentDocumentContent = currentEditor.document.getText();
+
+    const workspaceEditor = new vscode.WorkspaceEdit();
+
+    const statementsRange: vscode.Range[] = [];
+
+    let match;
+    while ((match = LOG_STATEMENT_REGEX.exec(currentDocumentContent))) {
+      const matchRange = new vscode.Range(
+        currentDocument.positionAt(match.index),
+        currentDocument.positionAt(match.index + match[0].length)
+      );
+      if (matchRange.isEmpty) {
+        return;
+      }
+
+      statementsRange.push(matchRange);
+    }
+
+    for (const statement of statementsRange) {
+      workspaceEditor.delete(currentDocument.uri, statement);
+    }
+
+    vscode.workspace.applyEdit(workspaceEditor).then(() => {
+      vscode.window.showInformationMessage(
+        `${statementsRange.length} statement(s) removed from current document.`
+      );
+    });
+  });
+
+  context.subscriptions.push(removeHandler);
 }
 
 export function deactivate() {}
