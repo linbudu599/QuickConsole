@@ -1,26 +1,58 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+const INSERT_COMMAND = 'quick-console.insertConsoleLog';
+const REMOVE_COMMAND = 'quick-console.removeConsoleLog';
+
+const INTERNAL_INSERT_AFTERLINE = 'editor.action.insertLineAfter';
+
+const logger = (...msg: unknown[]) => {
+  console.log('QuickConsole', ...msg);
+};
+
+const noActiveEditorTip = () => {
+  logger('No active TextEditor.');
+  vscode.window.showErrorMessage('No active TextEditor opened.');
+};
+
+const insertTexInSelection = (input: string) => {
+  const editor = vscode.window.activeTextEditor;
+
+  if (!editor) {
+    noActiveEditorTip();
+    return;
+  }
+
+  const selection = editor.selection;
+
+  const range = new vscode.Range(selection.start, selection.end);
+
+  editor?.edit((editBuilder) => {
+    editBuilder.replace(range, input);
+  });
+};
+
 export function activate(context: vscode.ExtensionContext) {
-	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "quick-console" is now active!');
+  const insertHandler = vscode.commands.registerCommand(INSERT_COMMAND, () => {
+    const currentEditor = vscode.window.activeTextEditor;
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('quick-console.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from quick-console!');
-	});
+    if (!currentEditor) {
+      noActiveEditorTip();
+      return;
+    }
 
-	context.subscriptions.push(disposable);
+    const { selection } = currentEditor;
+
+    const selectionContent = currentEditor.document.getText(selection);
+
+    selectionContent
+      ? vscode.commands.executeCommand(INTERNAL_INSERT_AFTERLINE).then(() => {
+          const statement = `console.log('${selectionContent}: ', ${selectionContent});`;
+          insertTexInSelection(statement);
+        })
+      : insertTexInSelection('console.log();');
+  });
+
+  context.subscriptions.push(insertHandler);
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {}
