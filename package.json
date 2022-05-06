@@ -20,8 +20,8 @@
 				"title": "Insert ConsoleLog statement with selection"
 			},
 			{
-				"command": "onCommand:quick-console.removeConsoleLog",
-				"title": "Delete ConsoleLog statements in document"
+				"command": "quick-console.removeConsoleLog",
+				"title": "Remove ConsoleLog statements in current document"
 			}
 		],
 		"keybindings": [
@@ -32,7 +32,7 @@
 				"when": "editorTextFocus"
 			},
 			{
-				"command": "onCommand:quick-console.removeConsoleLog",
+				"command": "quick-console.removeConsoleLog",
 				"key": "shift+ctrl+d",
 				"mac": "shift+cmd+d"
 			}

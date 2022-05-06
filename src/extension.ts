@@ -1,5 +1,11 @@
 import * as vscode from 'vscode';
 
+/**
+ * configurations:
+ * - log prefix
+ * - remove log type
+ */
+
 const INSERT_COMMAND = 'quick-console.insertConsoleLog';
 const REMOVE_COMMAND = 'quick-console.removeConsoleLog';
 
@@ -55,8 +61,6 @@ export function activate(context: vscode.ExtensionContext) {
       : insertTexInSelection('console.log();');
   });
 
-  context.subscriptions.push(insertHandler);
-
   const removeHandler = vscode.commands.registerCommand(REMOVE_COMMAND, () => {
     const currentEditor = vscode.window.activeTextEditor;
 
@@ -95,6 +99,8 @@ export function activate(context: vscode.ExtensionContext) {
       );
     });
   });
+
+  context.subscriptions.push(insertHandler);
 
   context.subscriptions.push(removeHandler);
 }
