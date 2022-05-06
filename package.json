@@ -6,9 +6,14 @@
 	"engines": {
 		"vscode": "^1.66.0"
 	},
+	"publisher": "linbudu",
 	"categories": [
 		"Other"
 	],
+	"license": "MIT",
+	"repository": {
+		"url": "https://github.com/linbudu599/QuickConsole"
+	},
 	"activationEvents": [
 		"onCommand:quick-console.insertConsoleLog",
 		"onCommand:quick-console.removeConsoleLog",
