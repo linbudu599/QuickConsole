@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as dayjs from 'dayjs';
 
 /**
  * configurations:
@@ -6,8 +7,10 @@ import * as vscode from 'vscode';
  * - remove log type
  */
 
+const EXTENSION_IDENTIFIER = 'quick-console';
 const INSERT_COMMAND = 'quick-console.insertConsoleLog';
 const REMOVE_COMMAND = 'quick-console.removeConsoleLog';
+const CONFIGURE_COMMAND = 'quick-console.configure';
 
 const INTERNAL_INSERT_AFTERLINE = 'editor.action.insertLineAfter';
 
@@ -53,12 +56,17 @@ export function activate(context: vscode.ExtensionContext) {
 
     const selectionContent = currentEditor.document.getText(selection);
 
+    const logPrefix =
+      vscode.workspace
+        .getConfiguration(EXTENSION_IDENTIFIER)
+        .get('logPrefix') ?? dayjs().format('MM-DD');
+
     selectionContent
       ? vscode.commands.executeCommand(INTERNAL_INSERT_AFTERLINE).then(() => {
-          const statement = `console.log('${selectionContent}: ', ${selectionContent});`;
+          const statement = `console.log('${logPrefix} ${selectionContent}: ', ${selectionContent});`;
           insertTexInSelection(statement);
         })
-      : insertTexInSelection('console.log();');
+      : insertTexInSelection(`${logPrefix} console.log();`);
   });
 
   const removeHandler = vscode.commands.registerCommand(REMOVE_COMMAND, () => {
@@ -100,9 +108,15 @@ export function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  context.subscriptions.push(insertHandler);
+  // configure log prefix only
+  const configureHandler = vscode.commands.registerCommand(
+    CONFIGURE_COMMAND,
+    () => {}
+  );
 
+  context.subscriptions.push(insertHandler);
   context.subscriptions.push(removeHandler);
+  context.subscriptions.push(configureHandler);
 }
 
 export function deactivate() {}
